@@ -12,6 +12,7 @@
 #   { "name"=>"DinoB", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>80 }
 # ]
 #
+require 'pry'
 
 def remaining_dino_lifespan(dino)
   100 - dino['age']
@@ -56,6 +57,14 @@ def group_dinos_by_category(dinos)
   end
 end
 
+def create_dinos_summary(dinos)
+  summary = {}
+  group_dinos_by_category(dinos).each do |category_metrics|
+    summary[category_metrics[:category]] = category_metrics[:count]
+  end
+  summary
+end
+
 def run(dinos)
     # Handle nil or empty input
     return { dinos: [], summary: {} } if dinos.nil? || dinos.empty?
@@ -66,13 +75,7 @@ def run(dinos)
     calculate_dinos_health(dinos)
     calculate_dinos_age_metrics(dinos)
 
-    f = {}
-    group_dinos_by_category(dinos).each do |category_metrics|
-      # add [summary] to dinos return object
-      f[category_metrics[:category]] = category_metrics[:count]
-    end
-
-    return { dinos: dinos, summary: f }
+    return { dinos: dinos, summary: create_dinos_summary(dinos) }
   end
   
   dinfo = run([
