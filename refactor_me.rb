@@ -7,7 +7,7 @@ describe "Dino Management" do
     { "name"=>"DinoB", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>80 },
     { "name"=>"DinoC", "category"=>"herbivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>70 },
     { "name"=>"DinoD", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"plant", "age"=>90 },
-    { "name"=>"DinoE", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"plant", "age"=>100 }
+    { "name"=>"DinoE", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>0 }
   ] }
 
   context "when using the long and unoptimized method" do
@@ -17,6 +17,7 @@ describe "Dino Management" do
         expect(run(dino_data)[:dinos][1]["health"]).to eq(20)
         expect(run(dino_data)[:dinos][2]["health"]).to eq(15)
         expect(run(dino_data)[:dinos][3]["health"]).to eq(5)
+        expect(run(dino_data)[:dinos][4]["health"]).to eq(0)
       end
     end
 
@@ -92,12 +93,16 @@ describe "Dino Management" do
     end
 
     describe "age boundary conditions" do
+      let(:age_zero_dino) { {"name"=>"DinoY", "category"=>"herbivore", "diet"=>"plants", "age"=>0} }
       let(:age_one_dino) { {"name"=>"DinoZ", "category"=>"herbivore", "diet"=>"plants", "age"=>1} }
       let(:age_two_dino) { {"name"=>"DinoW", "category"=>"herbivore", "diet"=>"plants", "age"=>2} }
       
       it "handles age boundary conditions correctly" do
         result = run([age_one_dino, age_two_dino])
         
+        # Age 0 should have 0 age_metrics
+        expect(result[:dinos][0]["age_metrics"]).to eq(0)
+
         # Age 1 should have 0 age_metrics
         expect(result[:dinos][0]["age_metrics"]).to eq(0)
         

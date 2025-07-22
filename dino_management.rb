@@ -45,12 +45,8 @@ def run(dinos)
 
     dinos.each do |d|
       # add [age_metrics] to dinos array  
-      if d['comment'] == 'Alive'
-        if d['age'] > 1
+      if d['comment'] == 'Alive' && d['age'] > 1
           d['age_metrics'] = (d['age'] / 2).to_i
-        else
-          d['age_metrics'] = 0
-        end
       else
         d['age_metrics'] = 0
       end
