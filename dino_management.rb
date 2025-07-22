@@ -22,14 +22,15 @@ def run(dinos)
 
     dinos.each do |d|
       # add [health] to dinos array
+      
+      # Apply 'Flocking Rules'; find most similar lines and make the differences the same
+      # to extract the low-level abstraction first 
+
+      remaining_life_span = 100 - d['age']
+      is_eating_correct_diet = (d['category'] == 'herbivore' && d['diet'] == 'plants') || (d['category'] == 'carnivore' && d['diet'] == 'meat')
+
       if d['age'] > 0
-        if d['category'] == 'herbivore'
-          d['health'] = d['diet'] == 'plants' ? (100 - d['age']) : (100 - d['age']) / 2
-        else
-          if d['category'] == 'carnivore'
-            d['health'] = d['diet'] == 'meat' ? (100 - d['age']) : (100 - d['age']) / 2
-          end
-        end
+        d['health'] = is_eating_correct_diet ? remaining_life_span : remaining_life_span / 2
       else
         d['health'] = 0
       end
