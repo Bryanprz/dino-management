@@ -13,10 +13,8 @@
 # ]
 #
 
-
 def run(dinos)
     dinos.each do |d|
-  
       # add [health] to dinos array
       if d['age'] > 0
         if d['category'] == 'herbivore'
@@ -29,7 +27,7 @@ def run(dinos)
       else
         d['health'] = 0
       end
-  
+
       # add [comment] to dinos array
       if d['health'] > 0
         d['comment'] = 'Alive'
@@ -37,7 +35,7 @@ def run(dinos)
         d['comment'] = 'Dead'
       end
     end
-  
+
     dinos.each do |d|
       # add [age_metrics] to dinos array  
       if d['comment'] == 'Alive'
@@ -50,19 +48,19 @@ def run(dinos)
         d['age_metrics'] = 0
       end
     end
-  
+
     if dinos && dinos.length > 0
       a = dinos.group_by { |d| d['category'] }.map do |category, dino_list|
         { category: category, count: dino_list.count }
       end
     end
-  
+
     f = {}
     a.each do |category_metrics|
       # add [summary] to dinos array
       f[category_metrics[:category]] = category_metrics[:count]
     end
-  
+
     return { dinos: dinos, summary: f }
   end
   
