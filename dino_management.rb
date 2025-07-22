@@ -13,6 +13,49 @@
 # ]
 #
 
+def remaining_dino_lifespan(dino)
+  100 - dino['age']
+end
+
+def dino_eating_correct_diet?(dino)
+  (dino['category'] == 'herbivore' && dino['diet'] == 'plants') || (dino['category'] == 'carnivore' && dino['diet'] == 'meat')
+end
+
+def calculate_dinos_health(dinos)
+  dinos.each do |d|
+    if d['age'] > 0
+      d['health'] = dino_eating_correct_diet?(d) ? remaining_dino_lifespan(d) : remaining_dino_lifespan(d) / 2
+    else
+      d['health'] = 0
+    end
+
+    # add [comment] to dinos array
+    if d['health'] > 0
+      d['comment'] = 'Alive'
+    else
+      d['comment'] = 'Dead'
+    end
+  end
+end
+
+def calculate_dinos_age_metrics(dinos)
+  dinos.each do |d|
+    if d['comment'] == 'Alive' && d['age'] > 1
+        d['age_metrics'] = (d['age'] / 2).to_i
+    else
+      d['age_metrics'] = 0
+    end
+  end
+end
+
+def group_dinos_by_category(dinos)
+  if dinos&.any?
+    dinos.group_by { |d| d['category'] }.map do |category, dino_list|
+      { category: category, count: dino_list.count }
+    end
+  end
+end
+
 def run(dinos)
     # Handle nil or empty input
     return { dinos: [], summary: {} } if dinos.nil? || dinos.empty?
@@ -20,47 +63,12 @@ def run(dinos)
     # Handle unknown categories
     return { dinos: dinos, summary: {} } if dinos.any? { |d| !['herbivore', 'carnivore'].include?(d['category']) }
 
-    dinos.each do |d|
-      # add [health] to dinos array
-      
-      # Apply 'Flocking Rules'; find most similar lines and make the differences the same
-      # to extract the low-level abstraction first 
-
-      remaining_life_span = 100 - d['age']
-      is_eating_correct_diet = (d['category'] == 'herbivore' && d['diet'] == 'plants') || (d['category'] == 'carnivore' && d['diet'] == 'meat')
-
-      if d['age'] > 0
-        d['health'] = is_eating_correct_diet ? remaining_life_span : remaining_life_span / 2
-      else
-        d['health'] = 0
-      end
-
-      # add [comment] to dinos array
-      if d['health'] > 0
-        d['comment'] = 'Alive'
-      else
-        d['comment'] = 'Dead'
-      end
-    end
-
-    dinos.each do |d|
-      # add [age_metrics] to dinos array  
-      if d['comment'] == 'Alive' && d['age'] > 1
-          d['age_metrics'] = (d['age'] / 2).to_i
-      else
-        d['age_metrics'] = 0
-      end
-    end
-
-    if dinos && dinos.length > 0
-      a = dinos.group_by { |d| d['category'] }.map do |category, dino_list|
-        { category: category, count: dino_list.count }
-      end
-    end
+    calculate_dinos_health(dinos)
+    calculate_dinos_age_metrics(dinos)
 
     f = {}
-    a.each do |category_metrics|
-      # add [summary] to dinos array
+    group_dinos_by_category(dinos).each do |category_metrics|
+      # add [summary] to dinos return object
       f[category_metrics[:category]] = category_metrics[:count]
     end
 
