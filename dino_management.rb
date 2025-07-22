@@ -41,6 +41,8 @@ class DinoHealthTracker
     end
   end
 
+  private 
+
   def dino_eating_correct_diet?
     (dino.category == 'herbivore' && dino.diet == 'plants') || (dino.category == 'carnivore' && dino.diet == 'meat')
   end
@@ -50,19 +52,29 @@ class DinoHealthTracker
   end
 end
 
-def remaining_dino_lifespan(dino)
-  100 - dino['age']
-end
+class DinoPopulationTracker
+  attr_reader :dinos
 
-def dino_eating_correct_diet?(dino)
-  (dino['category'] == 'herbivore' && dino['diet'] == 'plants') || (dino['category'] == 'carnivore' && dino['diet'] == 'meat')
-end
+  def initialize(dinos)
+    @dinos = dinos
+  end
 
-def calculate_dinos_health(dinos_data)
-  dinos_data.each do |d|
-    dino = Dino.new(d)
-    d['health'] = DinoHealthTracker.new(dino).calculate_health
-    d['comment'] = d['health'] > 0 ? 'Alive' : 'Dead'
+  def calculate_dinos_health
+    dinos.each do |d|
+      dino = Dino.new(d)
+      d['health'] = DinoHealthTracker.new(dino).calculate_health
+      d['comment'] = d['health'] > 0 ? 'Alive' : 'Dead'
+    end
+  end
+
+  def calculate_dinos_age_metrics
+    dinos.each do |d|
+      if d['comment'] == 'Alive' && d['age'] > 1
+        d['age_metrics'] = (d['age'] / 2).to_i
+      else
+        d['age_metrics'] = 0
+      end
+    end
   end
 end
 
@@ -117,9 +129,10 @@ def run(dinos)
     if dinos.any? { |d| !supported_dino_categories.include?(d['category']) }
       return unknown_categories_response(dinos) 
     end
-
-    calculate_dinos_health(dinos)
-    calculate_dinos_age_metrics(dinos)
+    
+    dinos_population_tracker = DinoPopulationTracker.new(dinos) 
+    dinos_population_tracker.calculate_dinos_health
+    dinos_population_tracker.calculate_dinos_age_metrics
 
     return { dinos: dinos, summary: create_dinos_summary(dinos) }
   end
