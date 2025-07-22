@@ -14,6 +14,12 @@
 #
 
 def run(dinos)
+    # Handle nil or empty input
+    return { dinos: [], summary: {} } if dinos.nil? || dinos.empty?
+
+    # Handle unknown categories
+    return { dinos: dinos, summary: {} } if dinos.any? { |d| !['herbivore', 'carnivore'].include?(d['category']) }
+
     dinos.each do |d|
       # add [health] to dinos array
       if d['age'] > 0

@@ -51,6 +51,61 @@ describe "Dino Management" do
       end 
     end
   end
+
+  context "edge cases" do
+    describe "empty array input" do
+      it "handles empty array gracefully" do
+        result = run([])
+        expect(result[:dinos]).to be_empty
+        expect(result[:summary]).to be_empty
+      end
+    end
+
+    describe "nil input" do
+      it "returns empty result" do
+        result = run(nil)
+        expect(result[:dinos]).to be_empty
+        expect(result[:summary]).to be_empty
+      end
+    end
+
+    describe "invalid categories" do
+      let(:invalid_dino) { {"name"=>"DinoX", "category"=>"flying", "diet"=>"fish", "age"=>50} }
+      
+      it "handles unknown categories" do
+        result = run([invalid_dino])
+        expect(result[:dinos][0]["health"]).to be_nil
+        expect(result[:dinos][0]["comment"]).to be_nil
+        expect(result[:dinos][0]["age_metrics"]).to be_nil
+      end
+    end
+
+    describe "negative ages" do
+      let(:negative_age_dino) { {"name"=>"DinoY", "category"=>"carnivore", "diet"=>"meat", "age"=>-10} }
+      
+      it "treats negative ages as 0" do
+        result = run([negative_age_dino])
+        expect(result[:dinos][0]["health"]).to eq(0)
+        expect(result[:dinos][0]["comment"]).to eq('Dead')
+        expect(result[:dinos][0]["age_metrics"]).to eq(0)
+      end
+    end
+
+    describe "age boundary conditions" do
+      let(:age_one_dino) { {"name"=>"DinoZ", "category"=>"herbivore", "diet"=>"plants", "age"=>1} }
+      let(:age_two_dino) { {"name"=>"DinoW", "category"=>"herbivore", "diet"=>"plants", "age"=>2} }
+      
+      it "handles age boundary conditions correctly" do
+        result = run([age_one_dino, age_two_dino])
+        
+        # Age 1 should have 0 age_metrics
+        expect(result[:dinos][0]["age_metrics"]).to eq(0)
+        
+        # Age 2 should have 1 age_metrics (2/2 = 1)
+        expect(result[:dinos][1]["age_metrics"]).to eq(1)
+      end
+    end
+  end
 end
 
 
