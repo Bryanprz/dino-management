@@ -1,5 +1,5 @@
 require "rspec"
-require_relative "../dino_management"
+require_relative "../lib/dino_management"
 
 describe "Dino Management" do
   let(:dino_data) { [
