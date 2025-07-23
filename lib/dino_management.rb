@@ -1,4 +1,3 @@
-require_relative 'dino_management/dino'
 require_relative 'dino_management/dino_population_survey'
 
 module DinoManagement
