@@ -1,5 +1,3 @@
-# run_app.rb
-
 require_relative './lib/dino_management'
 
 puts "\n--- Dino Management System Analysis ---"
@@ -34,6 +32,7 @@ else
 end
 
 puts "\n--- Population Summary ---"
+
 if result[:summary].empty?
   puts "No summary generated."
 else

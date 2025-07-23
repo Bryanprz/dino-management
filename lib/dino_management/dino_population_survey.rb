@@ -26,7 +26,7 @@ class DinoPopulationSurvey
   private
 
   def generate_summary
-    build_category_summary # Always build category summary first
+    build_category_summary
     if unknown_categories_present?
       add_error_message
     end
@@ -44,7 +44,7 @@ class DinoPopulationSurvey
     end
   end
 
-  def group_dinos_by_category(dino_reports) # Now takes an argument
+  def group_dinos_by_category(dino_reports)
     dino_reports.group_by { |r| r.dino.category }.map do |category, report_list|
       { category: category, count: report_list.count }
     end
