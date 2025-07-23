@@ -21,7 +21,7 @@ class DinoPopulationTracker
 
   def initialize(dinos_data)
     @dinos_data = dinos_data || []
-    @dinos_health_trackers = dinos_data.map { |d| DinoHealthTracker.new(d) }
+    @dinos_health_trackers = create_dinos_health_trackers
     @summary = {}
   end
 
@@ -31,6 +31,8 @@ class DinoPopulationTracker
     report_summary
   end
 
+  private 
+
   def report_dinos_health
     dinos_health_trackers.each do |dino_health_tracker|
       dino_health_tracker.calculate_health
@@ -39,9 +41,8 @@ class DinoPopulationTracker
   end
 
   def report_dinos_age_metrics
-    dinos_data.each do |dino_data|
-      dino_health_tracker = DinoHealthTracker.new(dino_data)
-      dino_data['age_metrics'] = dino_health_tracker.calculate_age_metrics
+    dinos_health_trackers.each do |dino_health_tracker|
+      dino_health_tracker.calculate_age_metrics
     end
   end
 
@@ -58,7 +59,9 @@ class DinoPopulationTracker
     summary
   end
 
-  private 
+  def create_dinos_health_trackers
+    @dinos_data.map { |d| DinoHealthTracker.new(d) }
+  end
 
   def dino_categories_valid?
     dinos_data.all? { |d| SUPPORTED_DINO_CATEGORIES.include?(d['category']) }
@@ -87,7 +90,7 @@ class DinoHealthTracker
     else
       remaining_dino_lifespan / 2
     end
-    
+
     dino_data['health'] = @health
   end
 
@@ -110,6 +113,8 @@ class DinoHealthTracker
     else
       0
     end 
+
+    dino_data['age_metrics'] = @age_metrics
   end
 
   private 
@@ -145,12 +150,13 @@ end
 
 # Main
 def run(dinos_data)
-  return {dinos: [], summary: {}} if dinos_data.nil? || dinos_data.empty?
-
   dino_population_tracker = DinoPopulationTracker.new(dinos_data)
   dino_population_tracker.analyze_data
 
-  { dinos: dino_population_tracker.dinos_data, summary: dino_population_tracker.summary }
+  { 
+    dinos: dino_population_tracker.dinos_data, 
+    summary: dino_population_tracker.summary 
+  }
 end
 
 dinfo = run([
