@@ -113,8 +113,7 @@ class DinoPopulationTracker
     if !dino_categories_valid?
       message = 'Cannot process dinos with unknown categories'
       summary['message'] = message
-      dinos_data.each { |dino| dino['message'] = message }
-      return 
+      return
     end
     
     group_dinos_by_category.each do |category_metrics|
@@ -130,10 +129,8 @@ class DinoPopulationTracker
   end
 
   def group_dinos_by_category
-    if dinos_data&.any?
-      dinos_data.group_by { |d| d['category'] }.map do |category, dino_list|
-        { category: category, count: dino_list.count }
-      end
+    dinos_data.group_by { |d| d['category'] }.map do |category, dino_list|
+      { category: category, count: dino_list.count }
     end
   end
 
