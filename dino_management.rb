@@ -13,78 +13,15 @@
 # ]
 #
 require 'pry'
-
-class Dino
-  attr_reader :name, :age, :category, :diet, :period
-
-  def initialize(dino_data)
-    @name = dino_data['name']
-    @age = dino_data['age']
-    @category = dino_data['category']
-    @diet = dino_data['diet']
-    @period = dino_data['period']
-  end
-end
-
-class DinoHealthTracker
-  attr_reader :health, :dino, :dino_data, :age_metrics
-
-  def initialize(dino_data)
-    @dino_data = dino_data
-    @dino = Dino.new(dino_data)
-  end
-
-  def calculate_health
-    @health = if dino.age <= 0
-      0
-    elsif dino_eating_correct_diet?
-      remaining_dino_lifespan
-    else
-      remaining_dino_lifespan / 2
-    end
-  end
-
-  def give_health_comment
-    return 'Unknown category' unless dino_category_valid?
-    health > 0 ? 'Alive' : 'Dead'
-  end
-
-  def calculate_age_metrics
-    @age_metrics = if !dino_category_valid?
-      nil
-    elsif dino_alive_and_old_enough?
-      (dino_data['age'] / 2).to_i
-    else
-      0
-    end 
-  end
-
-  private 
-
-  def dino_eating_correct_diet?
-    (dino.category == 'herbivore' && dino.diet == 'plants') || (dino.category == 'carnivore' && dino.diet == 'meat')
-  end
-
-  def remaining_dino_lifespan
-    100 - dino.age
-  end
-
-  def dino_category_valid?
-    DinoPopulationTracker::SUPPORTED_DINO_CATEGORIES.include?(dino.category)
-  end
-
-  def dino_alive_and_old_enough?
-    dino_data['comment'] == 'Alive' && dino.age > 1
-  end
-end
-
+  
 class DinoPopulationTracker
-  attr_reader :dinos_data, :summary
+  attr_reader :dinos_data, :summary, :dinos_health_trackers
 
   SUPPORTED_DINO_CATEGORIES = ['herbivore', 'carnivore'].freeze
 
   def initialize(dinos_data)
     @dinos_data = dinos_data || []
+    @dinos_health_trackers = dinos_data.map { |d| DinoHealthTracker.new(d) }
     @summary = {}
   end
 
@@ -95,10 +32,9 @@ class DinoPopulationTracker
   end
 
   def report_dinos_health
-    dinos_data.each do |dino_data|
-      dino_health_tracker = DinoHealthTracker.new(dino_data)
-      dino_data['health'] = dino_health_tracker.calculate_health
-      dino_data['comment'] = dino_health_tracker.give_health_comment
+    dinos_health_trackers.each do |dino_health_tracker|
+      dino_health_tracker.calculate_health
+      dino_health_tracker.create_health_comment
     end
   end
 
@@ -133,7 +69,78 @@ class DinoPopulationTracker
       { category: category, count: dino_list.count }
     end
   end
+end
 
+class DinoHealthTracker
+  attr_reader :health, :dino, :dino_data, :age_metrics, :comment
+
+  def initialize(dino_data)
+    @dino_data = dino_data
+    @dino = Dino.new(dino_data)
+  end
+
+  def calculate_health
+    @health = if dino.age <= 0
+      0
+    elsif dino_eating_correct_diet?
+      remaining_dino_lifespan
+    else
+      remaining_dino_lifespan / 2
+    end
+    
+    dino_data['health'] = @health
+  end
+
+  def create_health_comment
+    unless dino_category_valid?
+      @comment = 'Unknown category'
+      dino_data['comment'] = @comment
+      return
+    end
+
+    @comment = health.positive? ? 'Alive' : 'Dead'
+    dino_data['comment'] = @comment
+  end
+
+  def calculate_age_metrics
+    @age_metrics = if !dino_category_valid?
+      nil
+    elsif dino_alive_and_old_enough?
+      (dino_data['age'] / 2).to_i
+    else
+      0
+    end 
+  end
+
+  private 
+
+  def dino_eating_correct_diet?
+    (dino.category == 'herbivore' && dino.diet == 'plants') || (dino.category == 'carnivore' && dino.diet == 'meat')
+  end
+
+  def remaining_dino_lifespan
+    100 - dino.age
+  end
+
+  def dino_category_valid?
+    DinoPopulationTracker::SUPPORTED_DINO_CATEGORIES.include?(dino.category)
+  end
+
+  def dino_alive_and_old_enough?
+    dino_data['comment'] == 'Alive' && dino.age > 1
+  end
+end
+
+class Dino
+  attr_reader :name, :age, :category, :diet, :period
+
+  def initialize(dino_data)
+    @name = dino_data['name']
+    @age = dino_data['age']
+    @category = dino_data['category']
+    @diet = dino_data['diet']
+    @period = dino_data['period']
+  end
 end
 
 # Main
@@ -143,12 +150,12 @@ def run(dinos_data)
   dino_population_tracker = DinoPopulationTracker.new(dinos_data)
   dino_population_tracker.analyze_data
 
-  { dinos: dinos_data, summary: dino_population_tracker.summary }
+  { dinos: dino_population_tracker.dinos_data, summary: dino_population_tracker.summary }
 end
-  
-  dinfo = run([
-               { "name"=>"DinoA", "category"=>"herbivore", "period"=>"Cretaceous", "diet"=>"plants", "age"=>100 },
-               { "name"=>"DinoB", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>80 }
-             ])
-  
-  puts dinfo  
+
+dinfo = run([
+  { "name"=>"DinoA", "category"=>"herbivore", "period"=>"Cretaceous", "diet"=>"plants", "age"=>100 },
+  { "name"=>"DinoB", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>80 }
+])
+
+puts dinfo  
