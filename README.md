@@ -11,7 +11,7 @@ To run this project, you'll need Ruby installed on your system.
 1.  Clone the repository:
     ```bash
     git clone https://github.com/Bryanprz/dino-management.git
-    cd corporate_tools
+    cd dino-management
     ```
 
 ## How to Run the Program
