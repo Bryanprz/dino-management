@@ -27,10 +27,11 @@ class Dino
 end
 
 class DinoHealthTracker
-  attr_reader :health, :dino
+  attr_reader :health, :dino, :dino_data
 
-  def initialize(dino)
-    @dino = dino
+  def initialize(dino_data)
+    @dino_data = dino_data
+    @dino = Dino.new(dino_data)
   end
 
   def calculate_health
@@ -39,6 +40,23 @@ class DinoHealthTracker
     else
       @health = 0
     end
+  end
+
+  def write_health_comment
+    return 'Unknown category' unless DinoPopulationTracker::SUPPORTED_DINO_CATEGORIES.include?(dino.category)
+    health > 0 ? 'Alive' : 'Dead'
+  end
+
+  def calculate_age_metrics
+    if DinoPopulationTracker::SUPPORTED_DINO_CATEGORIES.include?(dino.category)
+      if dino_data['comment'] == 'Alive' && dino_data['age'] > 1
+        dino_data['age_metrics'] = (dino_data['age'] / 2).to_i
+      else
+        dino_data['age_metrics'] = 0
+      end
+      else
+        dino_data['age_metrics'] = nil
+      end
   end
 
   private 
@@ -70,41 +88,23 @@ class DinoPopulationTracker
   end
 
   def report_dinos_health
-    dinos_data.each do |d|
-      dino = Dino.new(d)
-      d['health'] = DinoHealthTracker.new(dino).calculate_health
-
-      if dino_categories_valid?
-        d['comment'] = d['health'] > 0 ? 'Alive' : 'Dead'
-      else
-        d['comment'] = 'Unknown category'
-      end
+    dinos_data.each do |dino_data|
+      dino_health_tracker = DinoHealthTracker.new(dino_data)
+      dino_data['health'] = dino_health_tracker.calculate_health
+      dino_data['comment'] = dino_health_tracker.write_health_comment
     end
   end
 
   def report_dinos_age_metrics
-    dinos_data.each do |d|
-      if dino_categories_valid?
-        if d['comment'] == 'Alive' && d['age'] > 1
-          d['age_metrics'] = (d['age'] / 2).to_i
-        else
-          d['age_metrics'] = 0
-        end
-      else
-        d['age_metrics'] = nil
-      end
+    return unless dinos_data.any?
+
+    dinos_data.each do |dino_data|
+      dino_health_tracker = DinoHealthTracker.new(dino_data)
+      dino_data['age_metrics'] = dino_health_tracker.calculate_age_metrics
     end
   end
 
   def report_summary
-    # binding.pry
-    # if !dino_categories_valid?
-    #   binding.pry
-    #   summary['message'] = 'Cannot process dinos with unknown categories'
-    #   binding.pry
-    #   return
-    # end
-
     if !dino_categories_valid?
       message = 'Cannot process dinos with unknown categories'
       summary['message'] = message
@@ -118,10 +118,6 @@ class DinoPopulationTracker
     summary
   end
 
-  # def self.unknown_categories_response(dinos_data)
-  #   { dinos: dinos_data, summary: {'message': 'Cannot process dinos with unknown categories'} }
-  # end
-  
   private 
 
   def dino_categories_valid?
@@ -136,10 +132,6 @@ class DinoPopulationTracker
     end
   end
 
-end
-
-def supported_dino_categories
-  ['herbivore', 'carnivore']
 end
 
 # Main
