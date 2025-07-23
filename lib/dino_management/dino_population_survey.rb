@@ -26,10 +26,9 @@ class DinoPopulationSurvey
   private
 
   def generate_summary
+    build_category_summary # Always build category summary first
     if unknown_categories_present?
       add_error_message
-    else
-      build_category_summary
     end
   end
 
@@ -38,13 +37,15 @@ class DinoPopulationSurvey
   end
 
   def build_category_summary
-    group_dinos_by_category.each do |category_metrics|
+    # Only group dinos with supported categories
+    supported_dino_reports = reports.select { |r| r.comment != UNKNOWN_CATEGORY_MSG }
+    group_dinos_by_category(supported_dino_reports).each do |category_metrics|
       summary[category_metrics[:category]] = category_metrics[:count]
     end
   end
 
-  def group_dinos_by_category
-    reports.group_by { |r| r.dino.category }.map do |category, report_list|
+  def group_dinos_by_category(dino_reports) # Now takes an argument
+    dino_reports.group_by { |r| r.dino.category }.map do |category, report_list|
       { category: category, count: report_list.count }
     end
   end

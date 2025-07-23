@@ -10,7 +10,8 @@ dinos_data = [
   { "name"=>"Stegosaurus", "category"=>"herbivore", "period"=>"Jurassic", "diet"=>"plants", "age"=>80 },
   { "name"=>"Velociraptor", "category"=>"carnivore", "period"=>"Cretaceous", "diet"=>"plants", "age"=>70 }, # Incorrect diet
   { "name"=>"Brachiosaurus", "category"=>"herbivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>90 }, # Incorrect diet
-  { "name"=>"Pterodactyl", "category"=>"flying", "period"=>"Jurassic", "diet"=>"fish", "age"=>50 } # Invalid category
+  { "name"=>"Pterodactyl", "category"=>"flying", "period"=>"Jurassic", "diet"=>"fish", "age"=>50 }, # Invalid category
+  { "name"=>"Ankylosaurus", "category"=>"herbivore", "period"=>"Cretaceous", "diet"=>"plants", "age"=>60 } # Another supported dino
 ]
 
 result = DinoManagement.analyze(dinos_data)
