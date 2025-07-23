@@ -1,56 +1,50 @@
-# Handles the survey of dino populations; orchestrates 
+require_relative 'dino_analyzer'
+require_relative 'dino'
+require_relative 'dino_config'
+
+# Handles the survey of dino populations; orchestrates
 # the analysis of data and generates a summary
 #
 class DinoPopulationSurvey
-    include DinoConfig
-    attr_reader :dinos_data, :summary, :dinos_health_inspectors
-  
-    def initialize(dinos_data)
-      @dinos_data = dinos_data || []
-      @dinos_health_inspectors = create_health_inspectors
-      @summary = {}
+  include DinoConfig
+  attr_reader :reports, :summary
+
+  def initialize(dinos_data)
+    dinos_data = dinos_data || []
+    # The original dino_data used string keys, so we convert them to symbols for the Dino initializer
+    @dinos = dinos_data.map { |d| Dino.new(**d.transform_keys(&:to_sym)) }
+    @reports = []
+    @summary = {}
+  end
+
+  def analyze
+    @reports = @dinos.map { |dino| DinoAnalyzer.analyze(dino) }
+    generate_summary
+  end
+
+  private
+
+  def generate_summary
+    if reports.any? { |r| r.comment == 'Unknown category' }
+      add_error_message
+    else
+      build_category_summary
     end
-  
-    def analyze
-      analyze_dinos_data
-      generate_summary
+  end
+
+  def build_category_summary
+    group_dinos_by_category.each do |category_metrics|
+      summary[category_metrics[:category]] = category_metrics[:count]
     end
-  
-    private 
-  
-    def create_health_inspectors
-      @dinos_data.map { |d| DinoHealthInspector.new(d) }
+  end
+
+  def group_dinos_by_category
+    reports.group_by { |r| r.dino.category }.map do |category, report_list|
+      { category: category, count: report_list.count }
     end
-  
-    def analyze_dinos_data
-      dinos_health_inspectors.each(&:analyze)
-    end
-  
-    def generate_summary
-      if dino_categories_valid?
-        build_category_summary
-      else
-        add_error_message
-      end
-    end
-  
-    def dino_categories_valid?
-      dinos_data.all? { |d| SUPPORTED_DINO_CATEGORIES.include?(d['category']) }
-    end
-  
-    def build_category_summary
-      group_dinos_by_category.each do |category_metrics|
-        summary[category_metrics[:category]] = category_metrics[:count]
-      end
-    end
-  
-    def group_dinos_by_category
-      dinos_data.group_by { |d| d['category'] }.map do |category, dino_list|
-        { category: category, count: dino_list.count }
-      end
-    end
-  
-    def add_error_message
-      summary['message'] = 'Cannot process dinos with unknown categories'
-    end
+  end
+
+  def add_error_message
+    summary['message'] = 'Cannot process dinos with unknown categories'
+  end
 end

@@ -1,8 +1,6 @@
 require_relative 'dino_management/dino'
-require_relative 'dino_management/dino_config'
-require_relative 'dino_management/dino_health_calculator'
-require_relative 'dino_management/dino_health_inspector'
 require_relative 'dino_management/dino_population_survey'
+require_relative 'dino_management/dino_analysis_report'
 
 module DinoManagement
   class Error < StandardError; end
@@ -17,7 +15,7 @@ module DinoManagement
     survey.analyze
     
     {
-      dinos: survey.dinos_data,
+      dinos: survey.reports.map(&:to_h),
       summary: survey.summary
     }
   end
