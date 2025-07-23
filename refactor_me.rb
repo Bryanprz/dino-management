@@ -99,19 +99,17 @@ describe "Dino Management" do
       let(:age_two_dino) { {"name"=>"DinoW", "category"=>"herbivore", "diet"=>"plants", "age"=>2} }
       
       it "handles age boundary conditions correctly" do
-        result = run([age_one_dino, age_two_dino])
+        result = run([age_zero_dino, age_one_dino, age_two_dino])
         
         # Age 0 should have 0 age_metrics
         expect(result[:dinos][0]["age_metrics"]).to eq(0)
 
         # Age 1 should have 0 age_metrics
-        expect(result[:dinos][0]["age_metrics"]).to eq(0)
+        expect(result[:dinos][1]["age_metrics"]).to eq(0)
         
         # Age 2 should have 1 age_metrics (2/2 = 1)
-        expect(result[:dinos][1]["age_metrics"]).to eq(1)
+        expect(result[:dinos][2]["age_metrics"]).to eq(1)
       end
     end
   end
 end
-
-

@@ -1,25 +1,12 @@
-# This is a poorly written code for the management of dinos.
-# The purpose of this code is to serve as a refactor test for
-# candidates applying for a software engineer position at our company.
-# We expect you to refactor it and turn it into an efficient
-# and maintainable code, following best practices. Fill in the Rspect test as well, modify it to your liking,
-# we do want to see some decent testing.
-# Please don't spend too much time on this, we know your time is valuable and we want to
-# make this fun but also allow you to show off your ruby skills :)
-#
-# Existing data: [
-#   { "name"=>"DinoA", "category"=>"herbivore", "period"=>"Cretaceous", "diet"=>"plants", "age"=>100 },
-#   { "name"=>"DinoB", "category"=>"carnivore", "period"=>"Jurassic", "diet"=>"meat", "age"=>80 }
-# ]
-#
-require 'pry'
-
 module DinoConfig
   LIFESPAN = 100
   SUPPORTED_DINO_CATEGORIES = ['herbivore', 'carnivore'].freeze
 end
-  
-class DinoPopulationTracker
+
+# Handles the survey of dino populations; orchestrates 
+# the analysis of data and generates a summary
+#
+class DinoPopulationSurvey
   include DinoConfig
   attr_reader :dinos_data, :summary, :dinos_health_inspectors
 
@@ -73,6 +60,9 @@ class DinoPopulationTracker
   end
 end
 
+# Inspects an individual dino's data and calculates its health, comment, and age metrics
+# Updates the provided data hash with calculated health metrics for use by DinoPopulationSurvey
+# 
 class DinoHealthInspector
   include DinoConfig
   attr_reader :health, :dino, :dino_data, :age_metrics, :comment
@@ -89,7 +79,7 @@ class DinoHealthInspector
   end
 
   private 
-  
+
   def calculate_health
     @health = if dino.age <= 0
       0
@@ -143,6 +133,13 @@ class DinoHealthInspector
   end
 end
 
+# Represents a single dino and its biological characteristics
+# 
+# This is a value object containing immutable data about a dino's 
+# species, diet, and historical period
+#
+# Does not include calculated metrics because a real-life dino would not 
+# have health, comment, or age metrics
 class Dino
   attr_reader :name, :age, :category, :diet, :period
 
@@ -157,12 +154,12 @@ end
 
 # Main
 def run(dinos_data)
-  dino_population_tracker = DinoPopulationTracker.new(dinos_data)
-  dino_population_tracker.analyze
+  dino_population_survey = DinoPopulationSurvey.new(dinos_data)
+  dino_population_survey.analyze
 
   { 
-    dinos: dino_population_tracker.dinos_data, 
-    summary: dino_population_tracker.summary 
+    dinos: dino_population_survey.dinos_data, 
+    summary: dino_population_survey.summary 
   }
 end
 
