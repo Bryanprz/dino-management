@@ -13,15 +13,19 @@
 # ]
 #
 require 'pry'
+
+module DinoConfig
+  LIFESPAN = 100
+  SUPPORTED_DINO_CATEGORIES = ['herbivore', 'carnivore'].freeze
+end
   
 class DinoPopulationTracker
-  attr_reader :dinos_data, :summary, :dinos_health_trackers
-
-  SUPPORTED_DINO_CATEGORIES = ['herbivore', 'carnivore'].freeze
+  include DinoConfig
+  attr_reader :dinos_data, :summary, :dinos_health_inspectors
 
   def initialize(dinos_data)
     @dinos_data = dinos_data || []
-    @dinos_health_trackers = create_dinos_health_trackers
+    @dinos_health_inspectors = create_dinos_health_inspectors
     @summary = {}
   end
 
@@ -34,33 +38,33 @@ class DinoPopulationTracker
   private 
 
   def report_dinos_health
-    dinos_health_trackers.each do |dino_health_tracker|
-      dino_health_tracker.calculate_health
-      dino_health_tracker.create_health_comment
+    dinos_health_inspectors.each do |dino_health_inspector|
+      dino_health_inspector.calculate_health
+      dino_health_inspector.create_health_comment
     end
   end
 
   def report_dinos_age_metrics
-    dinos_health_trackers.each do |dino_health_tracker|
-      dino_health_tracker.calculate_age_metrics
-    end
-  end
+    dinos_health_inspectors.each(&:calculate_age_metrics)
+  end 
 
   def report_summary
-    if !dino_categories_valid?
-      message = 'Cannot process dinos with unknown categories'
-      summary['message'] = message
-      return
-    end
-    
+    return add_error_message unless dino_categories_valid?
+    generate_category_summary
+  end
+
+  def add_error_message
+    summary['message'] = 'Cannot process dinos with unknown categories'
+  end
+
+  def generate_category_summary
     group_dinos_by_category.each do |category_metrics|
       summary[category_metrics[:category]] = category_metrics[:count]
     end
-    summary
   end
 
-  def create_dinos_health_trackers
-    @dinos_data.map { |d| DinoHealthTracker.new(d) }
+  def create_dinos_health_inspectors
+    @dinos_data.map { |d| DinoHealthInspector.new(d) }
   end
 
   def dino_categories_valid?
@@ -74,7 +78,8 @@ class DinoPopulationTracker
   end
 end
 
-class DinoHealthTracker
+class DinoHealthInspector
+  include DinoConfig
   attr_reader :health, :dino, :dino_data, :age_metrics, :comment
 
   def initialize(dino_data)
@@ -85,7 +90,7 @@ class DinoHealthTracker
   def calculate_health
     @health = if dino.age <= 0
       0
-    elsif dino_eating_correct_diet?
+    elsif correct_diet?
       remaining_dino_lifespan
     else
       remaining_dino_lifespan / 2
@@ -119,12 +124,13 @@ class DinoHealthTracker
 
   private 
 
-  def dino_eating_correct_diet?
-    (dino.category == 'herbivore' && dino.diet == 'plants') || (dino.category == 'carnivore' && dino.diet == 'meat')
+  def correct_diet?
+    (dino.category == 'herbivore' && dino.diet == 'plants') ||
+    (dino.category == 'carnivore' && dino.diet == 'meat')
   end
 
   def remaining_dino_lifespan
-    100 - dino.age
+    LIFESPAN - dino.age
   end
 
   def dino_category_valid?
