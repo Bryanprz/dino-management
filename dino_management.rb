@@ -53,88 +53,103 @@ class DinoHealthTracker
 end
 
 class DinoPopulationTracker
-  attr_reader :dinos
+  attr_reader :dinos_data, :summary
 
-  def initialize(dinos)
-    @dinos = dinos
+  SUPPORTED_DINO_CATEGORIES = ['herbivore', 'carnivore'].freeze
+
+  def initialize(dinos_data)
+    @dinos_data = dinos_data
+    @dinos_data = [] if dinos_data.nil?
+    @summary = {}
   end
 
-  def calculate_dinos_health
-    dinos.each do |d|
+  def analyze_data
+    report_dinos_health
+    report_dinos_age_metrics
+    report_summary
+  end
+
+  def report_dinos_health
+    dinos_data.each do |d|
       dino = Dino.new(d)
       d['health'] = DinoHealthTracker.new(dino).calculate_health
-      d['comment'] = d['health'] > 0 ? 'Alive' : 'Dead'
-    end
-  end
 
-  def calculate_dinos_age_metrics
-    dinos.each do |d|
-      if d['comment'] == 'Alive' && d['age'] > 1
-        d['age_metrics'] = (d['age'] / 2).to_i
+      if dino_categories_valid?
+        d['comment'] = d['health'] > 0 ? 'Alive' : 'Dead'
       else
-        d['age_metrics'] = 0
+        d['comment'] = 'Unknown category'
       end
     end
   end
-end
 
-def calculate_dinos_age_metrics(dinos)
-  dinos.each do |d|
-    if d['comment'] == 'Alive' && d['age'] > 1
-        d['age_metrics'] = (d['age'] / 2).to_i
-    else
-      d['age_metrics'] = 0
+  def report_dinos_age_metrics
+    dinos_data.each do |d|
+      if dino_categories_valid?
+        if d['comment'] == 'Alive' && d['age'] > 1
+          d['age_metrics'] = (d['age'] / 2).to_i
+        else
+          d['age_metrics'] = 0
+        end
+      else
+        d['age_metrics'] = nil
+      end
     end
   end
-end
 
-def group_dinos_by_category(dinos)
-  if dinos&.any?
-    dinos.group_by { |d| d['category'] }.map do |category, dino_list|
-      { category: category, count: dino_list.count }
+  def report_summary
+    # binding.pry
+    # if !dino_categories_valid?
+    #   binding.pry
+    #   summary['message'] = 'Cannot process dinos with unknown categories'
+    #   binding.pry
+    #   return
+    # end
+
+    if !dino_categories_valid?
+      message = 'Cannot process dinos with unknown categories'
+      summary['message'] = message
+      dinos_data.each { |dino| dino['message'] = message }
+      return 
+    end
+    
+    group_dinos_by_category.each do |category_metrics|
+      summary[category_metrics[:category]] = category_metrics[:count]
+    end
+    summary
+  end
+
+  # def self.unknown_categories_response(dinos_data)
+  #   { dinos: dinos_data, summary: {'message': 'Cannot process dinos with unknown categories'} }
+  # end
+  
+  private 
+
+  def dino_categories_valid?
+    dinos_data.all? { |d| SUPPORTED_DINO_CATEGORIES.include?(d['category']) }
+  end
+
+  def group_dinos_by_category
+    if dinos_data&.any?
+      dinos_data.group_by { |d| d['category'] }.map do |category, dino_list|
+        { category: category, count: dino_list.count }
+      end
     end
   end
-end
 
-# Dino Managemenet Configuration
-def create_dinos_summary(dinos)
-  summary = {}
-  group_dinos_by_category(dinos).each do |category_metrics|
-    summary[category_metrics[:category]] = category_metrics[:count]
-  end
-  summary
 end
 
 def supported_dino_categories
   ['herbivore', 'carnivore']
 end
 
-# Responses
-def unknown_categories_response(dinos)  
-  { dinos: dinos, summary: {'message': 'Cannot process dinos with unknown categories'} }
-end
-
-def empty_dinos_response
-  { dinos: [], summary: {} }
-end
-
 # Main
 def run(dinos)
-    # Handle 
-    if dinos.nil? || dinos.empty?
-      return empty_dinos_response 
-    end
+    return {dinos: [], summary: {}} if dinos.nil? || dinos.empty?
 
-    # Handle unknown categories
-    if dinos.any? { |d| !supported_dino_categories.include?(d['category']) }
-      return unknown_categories_response(dinos) 
-    end
-    
-    dinos_population_tracker = DinoPopulationTracker.new(dinos) 
-    dinos_population_tracker.calculate_dinos_health
-    dinos_population_tracker.calculate_dinos_age_metrics
+    dino_population_tracker = DinoPopulationTracker.new(dinos)
+    dino_population_tracker.analyze_data
 
-    return { dinos: dinos, summary: create_dinos_summary(dinos) }
+    return { dinos: dinos, summary: dino_population_tracker.summary }
   end
   
   dinfo = run([

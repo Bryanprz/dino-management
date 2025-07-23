@@ -66,7 +66,7 @@ describe "Dino Management" do
       it "returns empty result" do
         result = run(nil)
         expect(result[:dinos]).to be_empty
-        expect(result[:summary]).to be_empty
+        expect(result[:summary]).to eq({})
       end
     end
 
@@ -75,9 +75,10 @@ describe "Dino Management" do
       
       it "handles unknown categories" do
         result = run([invalid_dino])
-        expect(result[:dinos][0]["health"]).to be_nil
-        expect(result[:dinos][0]["comment"]).to be_nil
+        expect(result[:dinos][0][:health]).to be_nil
+        expect(result[:dinos][0]["comment"]).to eq('Unknown category')
         expect(result[:dinos][0]["age_metrics"]).to be_nil
+        expect(result[:summary]["message"]).to eq('Cannot process dinos with unknown categories')
       end
     end
 
