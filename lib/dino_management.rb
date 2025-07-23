@@ -1,6 +1,5 @@
 require_relative 'dino_management/dino'
 require_relative 'dino_management/dino_population_survey'
-require_relative 'dino_management/dino_analysis_report'
 
 module DinoManagement
   class Error < StandardError; end
@@ -27,8 +26,7 @@ module DinoManagement
 end
 
 # For backward compatibility with existing code
-# Consider deprecating this in the future
 def run(dinos_data)
-  warn "[DEPRECATION] Top-level [run](cci:1://file:///Users/bryan/Code/corporate_tools/lib/dino_management.rb:12:0-20:3) is deprecated. Use `DinoManagement.analyze` instead."
+  warn "[DEPRECATION] Top-level 'run' method is deprecated. Use `DinoManagement.analyze` instead."
   DinoManagement.analyze(dinos_data)
 end

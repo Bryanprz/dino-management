@@ -1,6 +1,8 @@
 require_relative 'dino_analysis_report'
 require_relative 'dino_config'
 
+# Analyzes dinosaur health metrics and generates analysis reports.
+# Uses a functional approach with pure functions for better testability
 class DinoAnalyzer
   include DinoConfig
 
