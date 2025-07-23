@@ -25,56 +25,51 @@ class DinoPopulationTracker
 
   def initialize(dinos_data)
     @dinos_data = dinos_data || []
-    @dinos_health_inspectors = create_dinos_health_inspectors
+    @dinos_health_inspectors = create_health_inspectors
     @summary = {}
   end
 
-  def analyze_data
-    report_dinos_health
-    report_dinos_age_metrics
-    report_summary
+  def analyze
+    analyze_dinos_data
+    generate_summary
   end
 
   private 
 
-  def report_dinos_health
-    dinos_health_inspectors.each do |dino_health_inspector|
-      dino_health_inspector.calculate_health
-      dino_health_inspector.create_health_comment
-    end
-  end
-
-  def report_dinos_age_metrics
-    dinos_health_inspectors.each(&:calculate_age_metrics)
-  end 
-
-  def report_summary
-    return add_error_message unless dino_categories_valid?
-    generate_category_summary
-  end
-
-  def add_error_message
-    summary['message'] = 'Cannot process dinos with unknown categories'
-  end
-
-  def generate_category_summary
-    group_dinos_by_category.each do |category_metrics|
-      summary[category_metrics[:category]] = category_metrics[:count]
-    end
-  end
-
-  def create_dinos_health_inspectors
+  def create_health_inspectors
     @dinos_data.map { |d| DinoHealthInspector.new(d) }
+  end
+
+  def analyze_dinos_data
+    dinos_health_inspectors.each(&:analyze)
+  end
+
+  def generate_summary
+    if dino_categories_valid?
+      build_category_summary
+    else
+      add_error_message
+    end
   end
 
   def dino_categories_valid?
     dinos_data.all? { |d| SUPPORTED_DINO_CATEGORIES.include?(d['category']) }
   end
 
+  def build_category_summary
+    group_dinos_by_category.each do |category_metrics|
+      summary[category_metrics[:category]] = category_metrics[:count]
+    end
+  end
+
   def group_dinos_by_category
     dinos_data.group_by { |d| d['category'] }.map do |category, dino_list|
       { category: category, count: dino_list.count }
     end
+  end
+
+  def add_error_message
+    summary['message'] = 'Cannot process dinos with unknown categories'
   end
 end
 
@@ -87,6 +82,14 @@ class DinoHealthInspector
     @dino = Dino.new(dino_data)
   end
 
+  def analyze
+    calculate_health
+    create_health_comment
+    calculate_age_metrics
+  end
+
+  private 
+  
   def calculate_health
     @health = if dino.age <= 0
       0
@@ -122,8 +125,6 @@ class DinoHealthInspector
     dino_data['age_metrics'] = @age_metrics
   end
 
-  private 
-
   def correct_diet?
     (dino.category == 'herbivore' && dino.diet == 'plants') ||
     (dino.category == 'carnivore' && dino.diet == 'meat')
@@ -134,7 +135,7 @@ class DinoHealthInspector
   end
 
   def dino_category_valid?
-    DinoPopulationTracker::SUPPORTED_DINO_CATEGORIES.include?(dino.category)
+    SUPPORTED_DINO_CATEGORIES.include?(dino.category)
   end
 
   def dino_alive_and_old_enough?
@@ -157,7 +158,7 @@ end
 # Main
 def run(dinos_data)
   dino_population_tracker = DinoPopulationTracker.new(dinos_data)
-  dino_population_tracker.analyze_data
+  dino_population_tracker.analyze
 
   { 
     dinos: dino_population_tracker.dinos_data, 
