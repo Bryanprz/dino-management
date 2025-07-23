@@ -140,6 +140,7 @@ end
 #
 # Does not include calculated metrics because a real-life dino would not 
 # have health, comment, or age metrics
+# 
 class Dino
   attr_reader :name, :age, :category, :diet, :period
 
