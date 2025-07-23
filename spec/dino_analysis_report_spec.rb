@@ -16,14 +16,14 @@ describe DinoAnalysisReport do
   describe '#to_h' do
     it 'converts the report to a hash' do
       expected_hash = {
-        name: 'Rex',
-        age: 100,
-        category: 'carnivore',
-        diet: 'meat',
-        period: 'Cretaceous',
-        health: 10,
-        comment: 'Alive',
-        age_metrics: 50
+        'name' => 'Rex',
+        'age' => 100,
+        'category' => 'carnivore',
+        'diet' => 'meat',
+        'period' => 'Cretaceous',
+        'health' => 10,
+        'comment' => 'Alive',
+        'age_metrics' => 50
       }
       expect(report.to_h).to eq(expected_hash)
     end
